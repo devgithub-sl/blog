@@ -6,7 +6,7 @@ const Home  = () : ReactNode => {
     return(
         <>  
             <NavBar/>
-            <ArticleForm/>
+                <ArticleForm/>
             <h1>Hallo</h1>
         </>
     )
