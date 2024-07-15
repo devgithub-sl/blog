@@ -1,4 +1,4 @@
-import { ReactNode, useState, MouseEvent, ChangeEvent, useMemo } from "react";
+import { ReactNode, useState, useEffect, MouseEvent, ChangeEvent, useMemo } from "react";
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
@@ -20,34 +20,16 @@ import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
+import axios from "axios";
 import NavBar from "../../components/NavBar";
 
 interface Article {
-    id: number;
+    id: string;
     name: string;
     content: string;
-    date: Date;
+    date: string;
     category: string;
 }
-
-function createData(id: number, name: string, content: string, date: Date, category: string): Article {
-    return {
-        id,
-        name,
-        content,
-        date,
-        category
-    };
-}
-
-const rows: Article[] = [
-    createData(1, 'Cupcake', 'Sweet and delicious', new Date(), 'Dessert'),
-    createData(2, 'Donut', 'Fried dough', new Date(), 'Snack'),
-    createData(3, 'Eclair', 'Cream-filled pastry', new Date(), 'Dessert'),
-    createData(4, 'Frozen yoghurt', 'Cold and refreshing', new Date(), 'Dessert'),
-    createData(5, 'Gingerbread', 'Spiced cookie', new Date(), 'Dessert'),
-    createData(6, 'Honeycomb', 'Honey treat', new Date(), 'Candy'),
-];
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     if (b[orderBy] < a[orderBy]) {
@@ -65,8 +47,8 @@ function getComparator<Key extends keyof Article>(
     order: Order,
     orderBy: Key,
 ): (
-    a: { [key in Key]: number | string },
-    b: { [key in Key]: number | string },
+    a: { [key in Key]: string | number },
+    b: { [key in Key]: string | number },
 ) => number {
     return order === 'desc'
         ? (a, b) => descendingComparator(a, b, orderBy)
@@ -93,30 +75,10 @@ interface HeadCell {
 }
 
 const headCells: readonly HeadCell[] = [
-    {
-        id: 'name',
-        numeric: false,
-        disablePadding: true,
-        label: 'Name',
-    },
-    {
-        id: 'content',
-        numeric: false,
-        disablePadding: false,
-        label: 'Content',
-    },
-    {
-        id: 'date',
-        numeric: false,
-        disablePadding: false,
-        label: 'Date',
-    },
-    {
-        id: 'category',
-        numeric: false,
-        disablePadding: false,
-        label: 'Category',
-    },
+    { id: 'name', numeric: false, disablePadding: true, label: 'Name' },
+    { id: 'content', numeric: false, disablePadding: false, label: 'Content' },
+    { id: 'date', numeric: false, disablePadding: false, label: 'Date' },
+    { id: 'category', numeric: false, disablePadding: false, label: 'Category' },
 ];
 
 interface EnhancedTableProps {
@@ -143,9 +105,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
                         indeterminate={numSelected > 0 && numSelected < rowCount}
                         checked={rowCount > 0 && numSelected === rowCount}
                         onChange={onSelectAllClick}
-                        inputProps={{
-                            'aria-label': 'select all articles',
-                        }}
+                        inputProps={{ 'aria-label': 'select all articles' }}
                     />
                 </TableCell>
                 {headCells.map((headCell) => (
@@ -176,10 +136,11 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 
 interface EnhancedTableToolbarProps {
     numSelected: number;
+    onDelete: () => void;
 }
 
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-    const { numSelected } = props;
+    const { numSelected, onDelete } = props;
 
     return (
         <Toolbar
@@ -193,27 +154,17 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             }}
         >
             {numSelected > 0 ? (
-                <Typography
-                    sx={{ flex: '1 1 100%' }}
-                    color="inherit"
-                    variant="subtitle1"
-                    component="div"
-                >
+                <Typography sx={{ flex: '1 1 100%' }} color="inherit" variant="subtitle1" component="div">
                     {numSelected} selected
                 </Typography>
             ) : (
-                <Typography
-                    sx={{ flex: '1 1 100%' }}
-                    variant="h6"
-                    id="tableTitle"
-                    component="div"
-                >
+                <Typography sx={{ flex: '1 1 100%' }} variant="h6" id="tableTitle" component="div">
                     Articles
                 </Typography>
             )}
             {numSelected > 0 ? (
                 <Tooltip title="Delete">
-                    <IconButton>
+                    <IconButton onClick={onDelete}>
                         <DeleteIcon />
                     </IconButton>
                 </Tooltip>
@@ -231,15 +182,27 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
 const ArticleHome = (): ReactNode => {
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<keyof Article>('name');
-    const [selected, setSelected] = useState<readonly number[]>([]);
+    const [selected, setSelected] = useState<readonly string[]>([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rows, setRows] = useState<Article[]>([]);
 
-    const handleRequestSort = (
-        _event: MouseEvent<unknown>,
-        property: keyof Article,
-    ) => {
+    useEffect(() => {
+        const fetchArticles = async () => {
+            try {
+                const response = await axios.get("http://localhost:4000/articles");
+                console.log("Fetched articles:", response.data); // Debugging statement
+                setRows(response.data);
+            } catch (error) {
+                console.error("Error fetching articles:", error);
+            }
+        };
+
+        fetchArticles();
+    }, []);
+
+    const handleRequestSort = (_event: MouseEvent<unknown>, property: keyof Article) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
@@ -254,9 +217,9 @@ const ArticleHome = (): ReactNode => {
         setSelected([]);
     };
 
-    const handleClick = (_event: MouseEvent<unknown>, id: number) => {
+    const handleClick = (_event: MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
-        let newSelected: readonly number[] = [];
+        let newSelected: readonly string[] = [];
 
         if (selectedIndex === -1) {
             newSelected = newSelected.concat(selected, id);
@@ -270,6 +233,7 @@ const ArticleHome = (): ReactNode => {
                 selected.slice(selectedIndex + 1),
             );
         }
+        console.log("New selected IDs:", newSelected);  // Debugging statement
         setSelected(newSelected);
     };
 
@@ -286,10 +250,9 @@ const ArticleHome = (): ReactNode => {
         setDense(event.target.checked);
     };
 
-    const isSelected = (id: number | string) => selected.indexOf(id) !== -1;
+    const isSelected = (id: string) => selected.indexOf(id) !== -1;
 
-    const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+    const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
     const visibleRows = useMemo(
         () =>
@@ -297,21 +260,31 @@ const ArticleHome = (): ReactNode => {
                 page * rowsPerPage,
                 page * rowsPerPage + rowsPerPage,
             ),
-        [order, orderBy, page, rowsPerPage],
+        [order, orderBy, page, rowsPerPage, rows],
     );
+
+    const handleDelete = async () => {
+        console.log("Selected IDs for deletion:", selected);  // Debugging statement
+        try {
+            for (const id of selected) {
+                console.log("Deleting article with ID:", id); // Debugging statement
+                await axios.delete(`http://localhost:4000/articles/${id}`);
+            }
+            setRows(rows.filter((row) => !selected.includes(row.id)));
+            setSelected([]);
+        } catch (error) {
+            console.error("Error deleting articles:", error);
+        }
+    };
 
     return (
         <>
             <NavBar />
             <Box sx={{ width: '100%' }}>
                 <Paper sx={{ width: '100%', mb: 2 }}>
-                    <EnhancedTableToolbar numSelected={selected.length} />
+                    <EnhancedTableToolbar numSelected={selected.length} onDelete={handleDelete} />
                     <TableContainer>
-                        <Table
-                            sx={{ minWidth: 750 }}
-                            aria-labelledby="tableTitle"
-                            size={dense ? 'small' : 'medium'}
-                        >
+                        <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={dense ? 'small' : 'medium'}>
                             <EnhancedTableHead
                                 numSelected={selected.length}
                                 order={order}
@@ -340,31 +313,20 @@ const ArticleHome = (): ReactNode => {
                                                 <Checkbox
                                                     color="primary"
                                                     checked={isItemSelected}
-                                                    inputProps={{
-                                                        'aria-labelledby': labelId,
-                                                    }}
+                                                    inputProps={{ 'aria-labelledby': labelId }}
                                                 />
                                             </TableCell>
-                                            <TableCell
-                                                component="th"
-                                                id={labelId}
-                                                scope="row"
-                                                padding="none"
-                                            >
+                                            <TableCell component="th" id={labelId} scope="row" padding="none">
                                                 {row.name}
                                             </TableCell>
                                             <TableCell align="left">{row.content}</TableCell>
-                                            <TableCell align="left">{row.date.toLocaleString()}</TableCell>
+                                            <TableCell align="left">{new Date(row.date).toLocaleString()}</TableCell>
                                             <TableCell align="left">{row.category}</TableCell>
                                         </TableRow>
                                     );
                                 })}
                                 {emptyRows > 0 && (
-                                    <TableRow
-                                        style={{
-                                            height: (dense ? 33 : 53) * emptyRows,
-                                        }}
-                                    >
+                                    <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
                                         <TableCell colSpan={6} />
                                     </TableRow>
                                 )}
