@@ -10,7 +10,7 @@ const Footer = () : ReactNode => {
                 color: "white",
                 marginTop: "110px"
             }}>
-                <h1>Made By Kisura W.S.P</h1>
+                <h1>BLOG CRUD</h1>
             </Box>
         </>
     );
