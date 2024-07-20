@@ -1,15 +1,14 @@
 import { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Article } from "./ReadArticle";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
-import { useEffect, useState } from "react";
 
-// Standalone Imports
+// Standalone imports
 import axios from "axios";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
-import UpdateForm from "../../components/UpdateForm";
 
-const DataTable = ({ onSelect }: { onSelect: (data: Article) => void }) => {
+const DataTable = ({ onDelete }: { onDelete: (id: string) => void }) => {
     const [data, setData] = useState<Article[]>([]);
 
     useEffect(() => {
@@ -45,7 +44,9 @@ const DataTable = ({ onSelect }: { onSelect: (data: Article) => void }) => {
                             <TableCell>{row.category}</TableCell>
                             <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
                             <TableCell>
-                                <Button onClick={() => onSelect(row)}>Edit</Button>
+                                <Button onClick={() => onDelete(row._id)} color="secondary">
+                                    Delete
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -55,21 +56,25 @@ const DataTable = ({ onSelect }: { onSelect: (data: Article) => void }) => {
     );
 };
 
-const UpdateArticle = (): ReactNode => {
-    const [selectedData, setSelectedData] = useState<Article | null>(null);
-
-    const handleSelect = (data: Article) => {
-        setSelectedData(data);
+const DeleteArticle = (): ReactNode => {
+    const handleDelete = async (id: string) => {
+        try {
+            await axios.delete(`http://localhost:4000/articles/${id}`);
+            alert("Article deleted successfully");
+            window.location.reload();
+        } catch (error) {
+            console.error("Error deleting article", error);
+            alert("There was an error deleting the article");
+        }
     };
 
     return (
         <>
             <NavBar />
-            <DataTable onSelect={handleSelect} />
-            {selectedData && <UpdateForm selectedData={selectedData} />}
+            <DataTable onDelete={handleDelete} />
             <Footer />
         </>
     );
 };
 
-export default UpdateArticle;
+export default DeleteArticle;

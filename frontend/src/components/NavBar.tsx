@@ -1,4 +1,7 @@
 import { ReactNode } from "react";
+import { Link } from "react-router-dom";
+
+// Standalone Imports
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -12,9 +15,8 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import React from "react";
 import formatPageName from "../utils/FormatPage";
-import { Link } from "react-router-dom";
 
-const pages = ['articles'];
+const pages = ['create article', 'read article', 'update article', 'delete article', 'article cards'];
 
 
 const NavBar = (): ReactNode => {

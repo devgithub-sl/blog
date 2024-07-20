@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const ArticleForm = (): ReactNode => {
+const ArticleForm = () : ReactNode => {
     const [name, setName] = useState<string>("");
     const [content, setContent] = useState<string>("");
     const [category, setCategory] = useState<string>("");
@@ -42,7 +42,7 @@ const ArticleForm = (): ReactNode => {
             });
             console.log(response.data);
             setSuccess("Article created successfully");
-            navigate('/articles');
+            navigate('/read_article');
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 setError(error.response?.data.message || 'There was an error creating the article');
@@ -53,14 +53,13 @@ const ArticleForm = (): ReactNode => {
             setLoading(false);
         }
     };
-
-    return (
-        <>  
-            <h1>Create New Article</h1>
+    return(
+        <>
             <Box
                 component="form"
                 sx={{
                     '& .MuiTextField-root': { m: 1, width: '25ch' },
+                    width: "35rem"
                 }}
                 noValidate
                 autoComplete="off"
@@ -73,6 +72,7 @@ const ArticleForm = (): ReactNode => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    sx={{width: "35rem"}}
                 />
                 <br/>
                 <TextField
@@ -84,6 +84,7 @@ const ArticleForm = (): ReactNode => {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     required
+                    sx={{width: "35rem"}}
                 />
                 <br/>
                 <TextField
@@ -94,6 +95,7 @@ const ArticleForm = (): ReactNode => {
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     required
+                    sx={{width: "35rem"}}
                 >
                     {categories.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
@@ -105,7 +107,7 @@ const ArticleForm = (): ReactNode => {
                 <Button 
                     variant="outlined"
                     type="submit"
-                    style={{ padding: '0 10px', margin: '20px', fontSize: '1.5rem' }}
+                    style={{ padding: '0 10px', margin: '20px', fontSize: '1.5rem'}}
                     disabled={loading}
                 >
                     {loading ? 'Submitting...' : 'Submit'}
