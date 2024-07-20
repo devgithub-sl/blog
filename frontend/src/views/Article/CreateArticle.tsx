@@ -13,11 +13,11 @@ const CreateArticle = () : ReactNode => {
             <NavBar/>
             <h1 style={{
                 display: "flex",
-                marginLeft: "30rem"
+                marginLeft: "15rem",
             }}>Create New Article</h1>
             <Box sx={{
                 display: "flex",
-                marginLeft: "30rem"
+                marginLeft: "15rem"
             }}>
                 <ArticleForm/>
             </Box>
