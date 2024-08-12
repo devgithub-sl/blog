@@ -15,11 +15,10 @@ const Home  = () : ReactNode => {
                 textAlign: "center",
                 fontSize: "50px"
             }}>
-                <h1>Hallo :)</h1>
-                <p>
+                <h2>
                     Welcome to Blog<br/>
                     This is a basic Application that is made to represent a CRUD of our Article Model
-                </p>
+                </h2>
             </Box>
             <Footer/>
         </>

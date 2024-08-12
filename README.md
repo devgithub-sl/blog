@@ -10,3 +10,6 @@
 - Open 2 seperate console windows in your text editor 
 - Then in FrontEnd and BackEnd directories type the `npm i` command
 - Then type `npm run dev` command for both directories and the go to the following localhost link that is provided in the frontend console window
+
+# Demo
+![BLOG_DEMO](blog_demo.gif)
